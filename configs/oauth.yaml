@@ -1,0 +1,7 @@
+# Access Token URL
+url: "https://accounts.spotify.com/api/token"
+
+# client credentials
+client:
+  id: "51c75bd603c0422ca5a8fa57a8732199"
+  secret: "fe3b054017664135bcc68977a61222cb"
