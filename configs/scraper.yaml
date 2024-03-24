@@ -1,0 +1,6 @@
+# Billboard Site URL
+url:
+  hot_100: "https://www.billboard.com/charts/hot-100"
+  billboard_200: "https://www.billboard.com/charts/billboard-200"
+  billboard_200_global: "https://www.billboard.com/charts/billboard-global-200"
+  billboard_japan_hot_100: "https://www.billboard.com/charts/japan-hot-100/"
