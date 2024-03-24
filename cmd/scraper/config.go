@@ -18,7 +18,7 @@ type Config struct {
 var CFG Config
 
 func readConfiguration() error {
-	configFile, err := os.Open("../../configs/web-scrape-config.yaml")
+	configFile, err := os.Open("../../configs/scraper.yaml")
 	if err != nil {
 		return fmt.Errorf("error while opening the config file: %v", err)
 	}
