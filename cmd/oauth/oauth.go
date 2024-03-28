@@ -15,11 +15,6 @@ type AccessResponse struct {
 }
 
 func RequestAccessToken() (AccessResponse, error) {
-	err := getConfiguration()
-	if err != nil {
-		return AccessResponse{}, err
-	}
-
 	req, err := generateRequest()
 	if err != nil {
 		return AccessResponse{}, err
@@ -45,7 +40,7 @@ func RequestAccessToken() (AccessResponse, error) {
 	return decodedResponse, nil
 }
 
-func getConfiguration() error {
+func GetConfiguration() error {
 	err := readConfiguration()
 	if err != nil {
 		return err
