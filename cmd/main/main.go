@@ -81,7 +81,7 @@ func main() {
 
 	collector := scraper.GetCollector()
 
-	songs, err := scraper.GetSongs(collector, url)
+	songs, err := scraper.GetSongs(collector, url, *songsLimit)
 	if err != nil {
 		log.Errorf("failed to get/scrape songs: %v", err)
 		os.Exit(0)

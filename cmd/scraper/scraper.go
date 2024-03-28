@@ -53,17 +53,23 @@ func GetURL(findType string, date string) (string, error) {
 	return "", errors.New("invalid find")
 }
 
-func GetSongs(collector *colly.Collector, url string) ([]Song, error) {
+func GetSongs(collector *colly.Collector, url string, limit int) ([]Song, error) {
+	count := 0
 	collector.OnHTML(".o-chart-results-list__item", func(element *colly.HTMLElement) {
 		song := Song{}
 
 		songName := element.ChildText("h3")
 		artistName := element.ChildText(".c-label")
 		if songName != "" {
-			log.Infof("received songName %s by artist %s", songName, artistName)
+			log.Infof("received song %s by artist %s", songName, artistName)
 			song.Name = songName
 			song.Artist = artistName
 			Songs = append(Songs, song)
+		}
+
+		count++
+		if count == limit {
+			return
 		}
 	})
 
