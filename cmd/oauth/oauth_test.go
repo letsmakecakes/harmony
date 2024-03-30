@@ -11,22 +11,15 @@ func TestRequestAccessToken(t *testing.T) {
 		t.FailNow()
 	}
 
-	response, err := RequestAccessToken()
-
+	client, err := RequestAccess()
 	if err != nil {
 		t.Errorf("failed to get access token: %v", err)
 		t.FailNow()
 	}
 
-	if response.AccessToken == "" {
-		t.Errorf("access token is empty")
-	}
-
-	if response.TokenType != "Bearer" {
-		t.Errorf("invalid token type, expected Bearer, received: %s", response.TokenType)
-	}
-
-	if response.ExpiresIn < 0 {
-		t.Errorf("invalid token expire period, received: %d", response.ExpiresIn)
+	_, err = client.CurrentUser()
+	if err != nil {
+		t.Errorf("failed to get current user: %v", err)
+		t.FailNow()
 	}
 }

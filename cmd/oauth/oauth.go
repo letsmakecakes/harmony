@@ -1,44 +1,19 @@
 package oauth
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
+	log "github.com/sirupsen/logrus"
+	"github.com/zmb3/spotify"
 	"net/http"
 )
 
-type AccessResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
-}
+const redirectURI = "http://localhost:8080/callback"
 
-func RequestAccessToken() (AccessResponse, error) {
-	req, err := generateRequest()
-	if err != nil {
-		return AccessResponse{}, err
-	}
-
-	resp, err := sendRequest(req)
-	if err != nil {
-		return AccessResponse{}, err
-	}
-
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			fmt.Printf("error while closing the response body: %v", err)
-		}
-	}(resp.Body)
-
-	decodedResponse, err := getDecodedResponse(resp)
-	if err != nil {
-		return AccessResponse{}, err
-	}
-
-	return decodedResponse, nil
-}
+var (
+	auth       = spotify.NewAuthenticator(redirectURI, spotify.ScopeUserReadPrivate)
+	clientChan = make(chan *spotify.Client)
+	state      = "user"
+)
 
 func GetConfiguration() error {
 	err := readConfiguration()
@@ -54,37 +29,49 @@ func GetConfiguration() error {
 	return nil
 }
 
-func generateRequest() (*http.Request, error) {
-	body := fmt.Sprintf("grant_type=client_credentials&client_id=%s&client_secret=%s", CFG.Client.ID, CFG.Client.Secret)
-	requestBody := []byte(body)
+func RequestAccess() (*spotify.Client, error) {
+	startHTTPServer()
 
-	req, err := http.NewRequest("POST", CFG.URL, bytes.NewBuffer(requestBody))
+	auth.SetAuthInfo(CFG.Client.ID, CFG.Client.Secret)
+	url := auth.AuthURL(state)
+
+	log.Infof("please log in to spotify by visting the following page in your browser: %s", url)
+
+	client := <-clientChan
+
+	user, err := client.CurrentUser()
 	if err != nil {
-		return req, fmt.Errorf("error creating request: %v", err)
+		return client, err
 	}
 
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	log.Infof("you are logged in as: %s", user.ID)
 
-	return req, nil
+	return client, nil
 }
 
-func sendRequest(req *http.Request) (*http.Response, error) {
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return resp, fmt.Errorf("error sending request: %v", err)
-	}
-
-	return resp, nil
+func startHTTPServer() {
+	http.HandleFunc("/callback", completeAuth)
+	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		log.Infof("got request for: %s", request.URL.String())
+	})
+	go http.ListenAndServe(":8080", nil)
 }
 
-func getDecodedResponse(resp *http.Response) (AccessResponse, error) {
-	var accessResponse AccessResponse
-
-	if err := json.NewDecoder(resp.Body).Decode(&accessResponse); err != nil {
-		return AccessResponse{}, fmt.Errorf("could not parse JSON response: %v", err)
+func completeAuth(w http.ResponseWriter, r *http.Request) {
+	token, err := auth.Token(state, r)
+	if err != nil {
+		http.Error(w, "couln't get token", http.StatusForbidden)
+		log.Fatal(err)
 	}
 
-	return accessResponse, nil
+	if st := r.FormValue("state"); st != state {
+		http.NotFound(w, r)
+		log.Fatalf("state mismatched: %s != %s\n", st, state)
+	}
+
+	client := auth.NewClient(token)
+
+	fmt.Fprintf(w, "login completed!")
+
+	clientChan <- &client
 }

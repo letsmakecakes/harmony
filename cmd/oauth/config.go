@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	URL    string `yaml:"url"`
-	Client struct {
+	URL         string `yaml:"url"`
+	RedirectURI string `yaml:"redirect_uri"`
+	Client      struct {
 		ID     string `yaml:"id"`
 		Secret string `yaml:"secret"`
 	} `yaml:"client"`
