@@ -118,6 +118,7 @@ func TestPlaylist_BillboardPlaylist(t *testing.T) {
 	date := ""
 	//limit := 2
 
+	// scraping billboard songs
 	scraper := new(scraper.Scraper)
 
 	scraper.GetCollector()
@@ -133,6 +134,7 @@ func TestPlaylist_BillboardPlaylist(t *testing.T) {
 		t.Errorf("songs list is empty")
 	}
 
+	// creating playlist
 	err = playlist.CreatePlaylist(spotifyClient, "Billboard Hot 100", "Top billboard hot 100")
 	if err != nil {
 		t.Error(err)
@@ -146,7 +148,9 @@ func TestPlaylist_BillboardPlaylist(t *testing.T) {
 
 	//playlist.Tracks = append(playlist.Tracks, "11dFghVXANMlKmJXsNCbNl")
 
+	// searching each song on spotify to get trackid
 	playlist.SearchSongs(scraper.Songs...)
 
+	// adding tracks to playlist
 	playlist.AddTracks()
 }
