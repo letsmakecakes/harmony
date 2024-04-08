@@ -1,7 +1,6 @@
 package scraper
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gocolly/colly"
 	log "github.com/sirupsen/logrus"
@@ -12,7 +11,11 @@ type Song struct {
 	Name   string
 }
 
-var Songs []Song
+type Scraper struct {
+	Collector *colly.Collector
+	URL       string
+	Songs     []Song
+}
 
 func GetConfiguration() error {
 	err := readConfiguration()
@@ -28,34 +31,37 @@ func GetConfiguration() error {
 	return nil
 }
 
-func GetCollector() *colly.Collector {
+func (scraper *Scraper) GetCollector() {
 	collector := colly.NewCollector()
 
-	return collector
+	scraper.Collector = collector
 }
 
-func GetURL(findType string, date string) (string, error) {
+func (scraper *Scraper) GenerateURL(findType string, date string) {
 	switch findType {
 	case "hot_100":
 		url := fmt.Sprintf("%s/%s", CFG.URL.Hot100, date)
-		return url, nil
+		scraper.URL = url
+		return
 	case "billboard_200":
 		url := fmt.Sprintf("%s/%s", CFG.URL.Billboard200, date)
-		return url, nil
+		scraper.URL = url
+		return
 	case "billboard_200_global":
 		url := fmt.Sprintf("%s/%s", CFG.URL.Billboard200Global, date)
-		return url, nil
+		scraper.URL = url
+		return
 	case "billboard_japan_hot_100":
 		url := fmt.Sprintf("%s/%s", CFG.URL.BillboardJapanHot100, date)
-		return url, nil
+		scraper.URL = url
+		return
 	}
 
-	return "", errors.New("invalid find")
+	log.Panicf("invalid chart type, received: %s", findType)
 }
 
-func GetSongs(collector *colly.Collector, url string, limit int) ([]Song, error) {
-	count := 0
-	collector.OnHTML(".o-chart-results-list__item", func(element *colly.HTMLElement) {
+func (scraper *Scraper) GetSongs() error {
+	scraper.Collector.OnHTML(".o-chart-results-list__item", func(element *colly.HTMLElement) {
 		song := Song{}
 
 		songName := element.ChildText("h3")
@@ -64,19 +70,14 @@ func GetSongs(collector *colly.Collector, url string, limit int) ([]Song, error)
 			log.Infof("received song %s by artist %s", songName, artistName)
 			song.Name = songName
 			song.Artist = artistName
-			Songs = append(Songs, song)
-		}
-
-		count++
-		if count == limit {
-			return
+			scraper.Songs = append(scraper.Songs, song)
 		}
 	})
 
-	err := collector.Visit(url)
+	err := scraper.Collector.Visit(scraper.URL)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return Songs, nil
+	return nil
 }

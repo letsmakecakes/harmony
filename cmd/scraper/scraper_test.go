@@ -11,21 +11,20 @@ func TestGetSongs(t *testing.T) {
 
 	findType := "hot_100"
 	date := ""
-	collector := GetCollector()
+	//limit := 2
 
-	url, err := GetURL(findType, date)
-	if err != nil {
-		t.Errorf("error getting url: %v", err)
-		t.FailNow()
-	}
+	scraper := new(Scraper)
 
-	songs, err := GetSongs(collector, url)
+	scraper.GetCollector()
+	scraper.GenerateURL(findType, date)
+
+	err = scraper.GetSongs()
 	if err != nil {
 		t.Errorf("failed to get songs list: %v", err)
 		t.FailNow()
 	}
 
-	if len(songs) == 0 {
+	if len(scraper.Songs) == 0 {
 		t.Errorf("songs list is empty")
 	}
 }
