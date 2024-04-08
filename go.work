@@ -1,8 +1,8 @@
 go 1.22
 
 use (
-	cmd/oauth
+	cmd/spotifyclient
 	cmd/main
-	cmd/artist
 	cmd/scraper
+	cmd/playlist
 )
