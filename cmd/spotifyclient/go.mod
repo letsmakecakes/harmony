@@ -1,4 +1,4 @@
-module oauth
+module spotifyclient
 
 go 1.22
 

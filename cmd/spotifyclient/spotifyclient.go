@@ -1,16 +1,17 @@
-package oauth
+package spotifyclient
 
 import (
 	"fmt"
+	"net/http"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/zmb3/spotify"
-	"net/http"
 )
 
-const redirectURI = "http://localhost:8080/callback"
+const RedirectURI = "http://localhost:8080/callback"
 
 var (
-	auth       = spotify.NewAuthenticator(redirectURI, spotify.ScopeUserReadPrivate, spotify.ScopePlaylistModifyPrivate)
+	auth       = spotify.NewAuthenticator(RedirectURI, spotify.ScopeUserReadPrivate, spotify.ScopePlaylistModifyPrivate)
 	clientChan = make(chan *spotify.Client)
 	state      = "user"
 )
